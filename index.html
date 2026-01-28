@@ -1,119 +1,113 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>Webカメラアプリ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Web Camera App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: #fff;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
+<style>
+  body {
+    margin: 0;
+    background: #111;
+    color: #fff;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+  }
 
-    .container {
-      width: 100%;
-      max-width: 480px;
-      padding: 10px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
+  .container {
+    width: 100%;
+    max-width: 480px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+  }
 
-    .switch-area {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-    }
+  .switch-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
 
-    /* スライドスイッチ */
-    .switch {
-      position: relative;
-      width: 50px;
-      height: 24px;
-    }
-    .switch input { display: none; }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      background: #555;
-      border-radius: 24px;
-      top: 0; left: 0; right: 0; bottom: 0;
-      transition: .3s;
-    }
-    .slider:before {
-      content: "";
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      left: 2px;
-      bottom: 2px;
-      background: #fff;
-      border-radius: 50%;
-      transition: .3s;
-    }
-    .switch input:checked + .slider {
-      background: #4caf50;
-    }
-    .switch input:checked + .slider:before {
-      transform: translateX(26px);
-    }
+  /* スライドスイッチ */
+  .switch {
+    position: relative;
+    width: 50px;
+    height: 24px;
+  }
+  .switch input { display: none; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    background: #555;
+    border-radius: 24px;
+    top: 0; left: 0; right: 0; bottom: 0;
+    transition: .3s;
+  }
+  .slider:before {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 2px;
+    bottom: 2px;
+    background: white;
+    border-radius: 50%;
+    transition: .3s;
+  }
+  input:checked + .slider {
+    background: #4caf50;
+  }
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }
 
-    /* 9:16 縦型撮影エリア */
-    .camera-frame {
-      width: 100%;
-      max-width: 360px;
-      aspect-ratio: 9 / 16;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+  /* 9:16 カメラ枠 */
+  .camera-frame {
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 9 / 16;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
 
-    video, img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+  video, img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-    .button-area {
-      margin-top: 10px;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
+  .button-area {
+    margin-top: 10px;
+    display: flex;
+    gap: 12px;
+  }
 
-    #shutterBtn {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      border: none;
-      background: red;
-      font-size: 30px;
-      color: white;
-    }
+  #shutterBtn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: none;
+    background: red;
+    font-size: 30px;
+    color: white;
+  }
 
-    #saveBtn, #deleteBtn {
-      padding: 10px 18px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: none;
-      background: #333;
-      color: #fff;
-    }
-  </style>
+  #saveBtn, #deleteBtn, #recordBtn {
+    padding: 10px 18px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: #fff;
+  }
+</style>
 </head>
 <body>
 
@@ -129,8 +123,8 @@
     <span>動画</span>
   </div>
 
-  <!-- 9:16 縦型カメラ枠 -->
-  <div class="camera-frame">
+  <!-- カメラ枠 -->
+  <div class="camera-frame" id="cameraFrame">
     <video id="camera" autoplay playsinline></video>
     <img id="photoPreview" style="display:none;">
   </div>
@@ -138,6 +132,7 @@
   <!-- ボタン -->
   <div class="button-area">
     <button id="shutterBtn">●</button>
+    <button id="recordBtn" style="display:none;">録画開始</button>
     <button id="saveBtn" style="display:none;">保存</button>
     <button id="deleteBtn" style="display:none;">削除</button>
   </div>
@@ -145,95 +140,120 @@
 </div>
 
 <script>
-  const video = document.getElementById("camera");
-  const photoPreview = document.getElementById("photoPreview");
-  const shutterBtn = document.getElementById("shutterBtn");
-  const saveBtn = document.getElementById("saveBtn");
-  const deleteBtn = document.getElementById("deleteBtn");
-  const modeSwitch = document.getElementById("modeSwitch");
+const video = document.getElementById("camera");
+const photoPreview = document.getElementById("photoPreview");
+const shutterBtn = document.getElementById("shutterBtn");
+const saveBtn = document.getElementById("saveBtn");
+const deleteBtn = document.getElementById("deleteBtn");
+const recordBtn = document.getElementById("recordBtn");
+const modeSwitch = document.getElementById("modeSwitch");
+const cameraFrame = document.getElementById("cameraFrame");
 
-  let stream;
-  let photoBlob;
+let stream;
+let track;
+let photoBlob;
+let recorder;
+let recordedChunks = [];
 
-  // カメラ起動
-  async function startCamera() {
-    try {
-      // スマホの背面カメラを優先
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false
-      });
-      video.srcObject = stream;
-    } catch (e) {
-      alert("カメラにアクセスできませんでした。\nhttps で開いているか、カメラの許可があるか確認してください。");
-      console.error(e);
-    }
+// カメラ起動
+async function startCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: "environment",
+      focusMode: "continuous"
+    },
+    audio: true
+  });
+
+  video.srcObject = stream;
+  track = stream.getVideoTracks()[0];
+}
+startCamera();
+
+// ★ タップで「全体フォーカスを再起動」
+cameraFrame.addEventListener("click", () => {
+  if (!track) return;
+  try {
+    track.applyConstraints({
+      advanced: [{ focusMode: "continuous" }]
+    });
+  } catch (e) {
+    console.log("フォーカス再適用エラー:", e);
   }
+});
 
-  startCamera();
-
-  // モード切り替え（今は動画は未実装）
-  modeSwitch.addEventListener("change", () => {
-    if (modeSwitch.checked) {
-      alert("動画モードはまだ実装していません（必要ならあとで追加できます）");
-      modeSwitch.checked = false;
-    }
-  });
-
-  // シャッターボタン
-  shutterBtn.addEventListener("click", () => {
-    // 写真モードのみ
-    takePhoto();
-  });
-
-  // 写真撮影
-  function takePhoto() {
-    if (!video.videoWidth || !video.videoHeight) {
-      alert("カメラの準備中です。少し待ってからもう一度撮影してください。");
-      return;
-    }
-
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(blob => {
-      if (!blob) return;
-      photoBlob = blob;
-      photoPreview.src = URL.createObjectURL(blob);
-
-      // プレビュー表示に切り替え
-      video.style.display = "none";
-      photoPreview.style.display = "block";
-      saveBtn.style.display = "inline-block";
-      deleteBtn.style.display = "inline-block";
-      shutterBtn.style.display = "none";
-    }, "image/jpeg", 0.9);
-  }
-
-  // 保存ボタン → ダウンロード
-  saveBtn.addEventListener("click", () => {
-    if (!photoBlob) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(photoBlob);
-    a.download = "photo.jpg";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  });
-
-  // 削除ボタン → 撮影画面に戻る
-  deleteBtn.addEventListener("click", () => {
-    photoPreview.style.display = "none";
-    video.style.display = "block";
-    saveBtn.style.display = "none";
-    deleteBtn.style.display = "none";
+// モード切り替え
+modeSwitch.addEventListener("change", () => {
+  if (modeSwitch.checked) {
+    shutterBtn.style.display = "none";
+    recordBtn.style.display = "inline-block";
+  } else {
     shutterBtn.style.display = "inline-block";
-    photoBlob = null;
-  });
+    recordBtn.style.display = "none";
+  }
+});
+
+// 写真撮影
+shutterBtn.addEventListener("click", () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+
+  canvas.toBlob(blob => {
+    photoBlob = blob;
+    photoPreview.src = URL.createObjectURL(blob);
+
+    video.style.display = "none";
+    photoPreview.style.display = "block";
+    saveBtn.style.display = "inline-block";
+    deleteBtn.style.display = "inline-block";
+    shutterBtn.style.display = "none";
+  }, "image/jpeg");
+});
+
+// 保存
+saveBtn.addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(photoBlob);
+  a.download = "photo.jpg";
+  a.click();
+});
+
+// 削除
+deleteBtn.addEventListener("click", () => {
+  photoPreview.style.display = "none";
+  video.style.display = "block";
+  saveBtn.style.display = "none";
+  deleteBtn.style.display = "none";
+  shutterBtn.style.display = "inline-block";
+});
+
+// 動画録画
+recordBtn.addEventListener("click", () => {
+  if (recordBtn.textContent === "録画開始") {
+    recordedChunks = [];
+    recorder = new MediaRecorder(stream);
+
+    recorder.ondataavailable = e => recordedChunks.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: "video/mp4" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "video.mp4";
+      a.click();
+    };
+
+    recorder.start();
+    recordBtn.textContent = "録画停止";
+    recordBtn.style.background = "red";
+
+  } else {
+    recorder.stop();
+    recordBtn.textContent = "録画開始";
+    recordBtn.style.background = "#333";
+  }
+});
 </script>
 
 </body>
