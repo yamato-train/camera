@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Web Camera App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       margin: 0;
@@ -13,6 +14,7 @@
       display: flex;
       justify-content: center;
     }
+
     .container {
       width: 100%;
       max-width: 480px;
@@ -23,6 +25,7 @@
       padding: 10px;
       box-sizing: border-box;
     }
+
     .camera-frame {
       width: 100%;
       max-width: 360px;
@@ -32,11 +35,13 @@
       overflow: hidden;
       position: relative;
     }
+
     video, img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+
     .mode-switch-overlay {
       position: absolute;
       top: 10px;
@@ -50,6 +55,7 @@
       gap: 10px;
       font-size: 14px;
     }
+
     .switch {
       position: relative;
       width: 50px;
@@ -81,11 +87,13 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+
     .button-area {
       margin-top: 10px;
       display: flex;
       gap: 12px;
     }
+
     #shutterBtn {
       width: 70px;
       height: 70px;
@@ -95,6 +103,7 @@
       font-size: 30px;
       color: white;
     }
+
     #saveBtn, #deleteBtn, #recordBtn {
       padding: 10px 18px;
       font-size: 16px;
@@ -108,9 +117,13 @@
 <body>
 
 <div class="container">
+
+  <!-- カメラ枠 -->
   <div class="camera-frame" id="cameraFrame">
     <video id="camera" autoplay playsinline></video>
     <img id="photoPreview" style="display:none;">
+
+    <!-- モード切り替えスイッチ（カメラ上に表示） -->
     <div class="mode-switch-overlay">
       <span>📷</span>
       <label class="switch">
@@ -121,12 +134,14 @@
     </div>
   </div>
 
+  <!-- ボタン -->
   <div class="button-area">
     <button id="shutterBtn">●</button>
     <button id="recordBtn" style="display:none;">録画開始</button>
     <button id="saveBtn" style="display:none;">保存</button>
     <button id="deleteBtn" style="display:none;">削除</button>
   </div>
+
 </div>
 
 <script>
@@ -145,40 +160,23 @@ let photoBlob;
 let recorder;
 let recordedChunks = [];
 
+// カメラ起動
 async function startCamera() {
-  if (location.protocol !== "https:") {
-    alert("このページはHTTPSで開いてください（GitHub Pagesなど）");
-    return;
-  }
-
   try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(d => d.kind === "videoinput");
-    if (videoDevices.length === 0) {
-      alert("カメラデバイスが見つかりませんでした。");
-      return;
-    }
-
-    const selectedDeviceId = videoDevices[0].deviceId;
-
     stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        deviceId: { exact: selectedDeviceId },
-        facingMode: "environment"
-      },
+      video: { facingMode: { ideal: "environment" } },
       audio: true
     });
-
     video.srcObject = stream;
     track = stream.getVideoTracks()[0];
-
   } catch (e) {
-    console.error("getUserMedia エラー:", e);
-    alert("カメラにアクセスできませんでした。\nブラウザのカメラ許可設定を確認してください。");
+    alert("カメラにアクセスできませんでした。\nHTTPSで開いているか、カメラの許可があるか確認してください。");
+    console.error(e);
   }
 }
 startCamera();
 
+// タップで全体フォーカス再起動
 cameraFrame.addEventListener("click", () => {
   if (!track) return;
   try {
@@ -188,6 +186,7 @@ cameraFrame.addEventListener("click", () => {
   }
 });
 
+// モード切り替え
 modeSwitch.addEventListener("change", () => {
   if (modeSwitch.checked) {
     shutterBtn.style.display = "none";
@@ -198,14 +197,17 @@ modeSwitch.addEventListener("change", () => {
   }
 });
 
+// 写真撮影
 shutterBtn.addEventListener("click", () => {
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0);
+
   canvas.toBlob(blob => {
     photoBlob = blob;
     photoPreview.src = URL.createObjectURL(blob);
+
     video.style.display = "none";
     photoPreview.style.display = "block";
     saveBtn.style.display = "inline-block";
@@ -214,6 +216,7 @@ shutterBtn.addEventListener("click", () => {
   }, "image/jpeg");
 });
 
+// 保存
 saveBtn.addEventListener("click", () => {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(photoBlob);
@@ -221,6 +224,7 @@ saveBtn.addEventListener("click", () => {
   a.click();
 });
 
+// 削除
 deleteBtn.addEventListener("click", () => {
   photoPreview.style.display = "none";
   video.style.display = "block";
@@ -229,10 +233,12 @@ deleteBtn.addEventListener("click", () => {
   shutterBtn.style.display = "inline-block";
 });
 
+// 動画録画
 recordBtn.addEventListener("click", () => {
   if (recordBtn.textContent === "録画開始") {
     recordedChunks = [];
     recorder = new MediaRecorder(stream);
+
     recorder.ondataavailable = e => recordedChunks.push(e.data);
     recorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: "video/mp4" });
@@ -241,9 +247,11 @@ recordBtn.addEventListener("click", () => {
       a.download = "video.mp4";
       a.click();
     };
+
     recorder.start();
     recordBtn.textContent = "録画停止";
     recordBtn.style.background = "red";
+
   } else {
     recorder.stop();
     recordBtn.textContent = "録画開始";
